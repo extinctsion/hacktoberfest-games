@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake Game</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #1e1e2f, #2a2a4a);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    #game-board {
+      background: #111;
+      border: 3px solid #4caf50;
+      box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+      display: grid;
+      grid-template-rows: repeat(20, 1fr);
+      grid-template-columns: repeat(20, 1fr);
+      width: 400px;
+      height: 400px;
+      position: relative;
+    }
+
+    .snake {
+      background-color: #4caf50;
+      border-radius: 4px;
+    }
+
+    .food {
+      background-color: #ff5252;
+      border-radius: 50%;
+    }
+
+    #score {
+      font-size: 1.2rem;
+      margin: 10px;
+    }
+
+    button {
+      background-color: #4caf50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐍 Snake Game</h1>
+  <div id="score">Score: 0</div>
+  <div id="game-board"></div>
+  <button id="start-btn">Start Game</button>
+
+  <script>
+    const board = document.getElementById('game-board');
+    const scoreDisplay = document.getElementById('score');
+    const startBtn = document.getElementById('start-btn');
+
+    const boardSize = 20;
+    let snake = [{ x: 10, y: 10 }];
+    let direction = { x: 0, y: 0 };
+    let food = generateFood();
+    let score = 0;
+    let gameInterval;
+
+    function drawBoard() {
+      board.innerHTML = '';
+
+      snake.forEach(segment => {
+        const snakeElement = document.createElement('div');
+        snakeElement.style.gridRowStart = segment.y;
+        snakeElement.style.gridColumnStart = segment.x;
+        snakeElement.classList.add('snake');
+        board.appendChild(snakeElement);
+      });
+
+      const foodElement = document.createElement('div');
+      foodElement.style.gridRowStart = food.y;
+      foodElement.style.gridColumnStart = food.x;
+      foodElement.classList.add('food');
+      board.appendChild(foodElement);
+    }
+
+    function generateFood() {
+      let newFood;
+      while (true) {
+        newFood = {
+          x: Math.floor(Math.random() * boardSize) + 1,
+          y: Math.floor(Math.random() * boardSize) + 1
+        };
+        if (!snake.some(segment => segment.x === newFood.x && segment.y === newFood.y)) {
+          return newFood;
+        }
+      }
+    }
+
+    function update() {
+      const head = {
+        x: snake[0].x + direction.x,
+        y: snake[0].y + direction.y
+      };
+
+      // Game Over Conditions
+      if (
+        head.x < 1 || head.x > boardSize ||
+        head.y < 1 || head.y > boardSize ||
+        snake.some(segment => segment.x === head.x && segment.y === head.y)
+      ) {
+        clearInterval(gameInterval);
+        alert(`Game Over! Your final score: ${score}`);
+        resetGame();
+        return;
+      }
+
+      snake.unshift(head);
+
+      // Eating food
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+        food = generateFood();
+      } else {
+        snake.pop();
+      }
+
+      drawBoard();
+    }
+
+    function resetGame() {
+      snake = [{ x: 10, y: 10 }];
+      direction = { x: 0, y: 0 };
+      score = 0;
+      scoreDisplay.textContent = 'Score: 0';
+      food = generateFood();
+    }
+
+    function handleInput(e) {
+      switch (e.key) {
+        case 'ArrowUp': if (direction.y === 0) direction = { x: 0, y: -1 }; break;
+        case 'ArrowDown': if (direction.y === 0) direction = { x: 0, y: 1 }; break;
+        case 'ArrowLeft': if (direction.x === 0) direction = { x: -1, y: 0 }; break;
+        case 'ArrowRight': if (direction.x === 0) direction = { x: 1, y: 0 }; break;
+      }
+    }
+
+    function startGame() {
+      resetGame();
+      drawBoard();
+      clearInterval(gameInterval);
+      gameInterval = setInterval(update, 150);
+    }
+
+    document.addEventListener('keydown', handleInput);
+    startBtn.addEventListener('click', startGame);
+  </script>
+</body>
+</html>
